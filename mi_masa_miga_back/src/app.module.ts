@@ -1,6 +1,7 @@
 // 📁 src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -11,6 +12,7 @@ import configuration from './config/configuration';
       load: [configuration], // Carga tu configuración personalizada
       envFilePath: '.env', // Ruta de tu archivo .env
     }),
+    AuthModule,
     // ... otros módulos que tengas
   ],
   controllers: [], // Tus controladores
