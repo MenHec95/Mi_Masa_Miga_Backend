@@ -1,60 +1,69 @@
+// 📁 src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
   
-  // Pipe de validación global (importante para DTOs)
+  // Validation
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Elimina propiedades no decoradas en DTOs
-      forbidNonWhitelisted: true, // Lanza error si hay propiedades no permitidas
-      transform: true, // Transforma los tipos automáticamente
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
   
-  // Configuración de Swagger
-  const config = new DocumentBuilder()
-    .setTitle('Mi Masa Miga API')
-    .setDescription('API para la gestión de panadería Mi Masa Miga')
-    .setVersion('1.0')
-    .addTag('panaderia')
-    .addTag('productos')
-    .addTag('clientes')
-    // Descomenta si usas autenticación:
-    // .addBearerAuth()
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
+  // Swagger - usando get con tipado y valores por defecto
+  const swaggerEnabled = configService.get<boolean>('swagger.enabled', true);
+  const nodeEnv = configService.get<string>('nodeEnv', 'development');
   
-  // Configurar Swagger UI
-  SwaggerModule.setup('docs', app, document, {
-    explorer: true,
-    swaggerOptions: {
-      filter: true,
-      showRequestDuration: true,
-    },
-  });
+  if (swaggerEnabled && nodeEnv !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle(configService.get<string>('swagger.title', 'Mi Masa Miga API'))
+      .setDescription(configService.get<string>('swagger.description', 'API para gestión de panadería'))
+      .setVersion(configService.get<string>('swagger.version', '1.0'))
+      .addTag('panaderia')
+      .addTag('productos')
+      .addTag('clientes')
+      .addBearerAuth()
+      .build();
+    
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup(
+      configService.get<string>('swagger.path', 'docs'), 
+      app, 
+      document
+    );
+  }
   
-  // Habilitar CORS (si es necesario)
+  // CORS dinámico - con valores por defecto seguros
+  const corsOrigins = configService.get<string[]>('cors.origins', ['http://localhost:3000']);
+  const corsMethods = configService.get<string[]>('cors.methods', ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']);
+  const corsCredentials = configService.get<boolean>('cors.credentials', true);
+  const corsAllowedHeaders = configService.get<string[]>('cors.allowedHeaders', ['Content-Type', 'Authorization', 'Accept']);
+  
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:4200'], // Ajusta según necesites
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
+    origin: corsOrigins,
+    methods: corsMethods,
+    credentials: corsCredentials,
+    allowedHeaders: corsAllowedHeaders,
   });
   
-  const port = process.env.PORT || 3000;
+  const port = configService.get<number>('port', 3000);
   await app.listen(port);
   
-  console.log(`Aplicación ejecutándose en: ${await app.getUrl()}`);
-  console.log(
-    `Documentación Swagger disponible en: ${await app.getUrl()}/docs`,
-  );
+  console.log(`🚀 Servidor corriendo en: ${await app.getUrl()}`);
+  console.log(`🌍 Entorno: ${nodeEnv}`);
+  
+  if (swaggerEnabled && nodeEnv !== 'production') {
+    const swaggerPath = configService.get<string>('swagger.path', 'docs');
+    console.log(`📚 Swagger: ${await app.getUrl()}/${swaggerPath}`);
+  }
 }
 
 bootstrap();
