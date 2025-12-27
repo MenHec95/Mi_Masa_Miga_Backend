@@ -47,7 +47,9 @@ async function bootstrap() {
   }
 
   // CORS dinámico - con valores por defecto seguros
-  const corsOrigins = configService.get<string[]>('cors.origins', ['http://localhost:3000']);
+  const corsOrigins = configService.get<string[]>('cors.origins', [
+    'http://localhost:3000',
+  ]);
   const corsMethods = configService.get<string[]>('cors.methods', [
     'GET',
     'POST',
