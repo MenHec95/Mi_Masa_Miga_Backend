@@ -12,8 +12,10 @@ export class CreateAuthDto {
 }
 
 export class CreateAuthResponseDto{
-@IsEmail()
-email:string
-@IsUUID()
-userId:string
+// @IsEmail()
+// email:string
+// @IsUUID()
+// userId:string
+@IsString()
+userName:string
 }
