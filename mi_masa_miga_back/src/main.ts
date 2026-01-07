@@ -1,9 +1,13 @@
 // 📁 src/main.ts
+import * as dotenv from 'dotenv';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
+
+// Cargar variables de entorno ANTES de crear la aplicación
+dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
