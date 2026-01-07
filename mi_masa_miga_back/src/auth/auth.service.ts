@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateAuthDto, CreateAuthResponseDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import * as bcrypt from 'bcrypt';
@@ -16,8 +16,11 @@ export class AuthService {
   ) {}
 
   async create(createAuthDto: CreateAuthDto):Promise<CreateAuthResponseDto> {
-
-    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS||"10");
+    
+    console.log(createAuthDto);
+    try {
+    
+      const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS||"10");
     const hashedPassword = await bcrypt.hash(createAuthDto.password, saltRounds);
 
     const newUser = await this.prisma.user.create({
@@ -31,6 +34,11 @@ export class AuthService {
     });
 
     return {userName:newUser.user_name};
+  } catch (error) {if (error instanceof BadRequestException) {
+      throw error;
+    }
+    throw new BadRequestException('Error al crear usuario: ' + error.message);
+  }
   }
 
   findAll() {

@@ -16,8 +16,9 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post()
-  create(@Body() createAuthDto: CreateAuthDto):Promise<CreateAuthResponseDto>{
-    return this.authService.create(createAuthDto);
+  async create(@Body() createAuthDto: CreateAuthDto):Promise<CreateAuthResponseDto>{
+    //console.log(createAuthDto);
+    return await this.authService.create(createAuthDto);
   }
 
   @Get()
