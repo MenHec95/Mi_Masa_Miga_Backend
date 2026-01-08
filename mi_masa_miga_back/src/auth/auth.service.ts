@@ -17,7 +17,7 @@ export class AuthService {
 
   async create(createAuthDto: CreateAuthDto):Promise<CreateAuthResponseDto> {
     
-    console.log(createAuthDto);
+    //console.log(createAuthDto);
     try {
     
       const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS||"10");
