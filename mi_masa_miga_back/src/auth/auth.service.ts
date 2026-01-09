@@ -18,9 +18,17 @@ export class AuthService {
   async create(createAuthDto: CreateAuthDto):Promise<CreateAuthResponseDto> {
     
     //console.log(createAuthDto);
+
     try {
+      
+    const user= await this.prisma.user.findUnique({where:{email: createAuthDto.email},
+    select:{email:true}})
+    if (user){
+      //console.log(user)
+      throw new BadRequestException("Email ya existente");
+    }
     
-      const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS||"10");
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS||"10");
     const hashedPassword = await bcrypt.hash(createAuthDto.password, saltRounds);
 
     const newUser = await this.prisma.user.create({
@@ -37,7 +45,7 @@ export class AuthService {
   } catch (error) {if (error instanceof BadRequestException) {
       throw error;
     }
-    throw new BadRequestException('Error al crear usuario: ' + error.message);
+    throw new BadRequestException('Error al crear usuario');
   }
   }
 

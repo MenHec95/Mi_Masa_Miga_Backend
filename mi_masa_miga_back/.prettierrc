@@ -1,8 +1,6 @@
-# Crea .prettierrc en la raíz
-cat > .prettierrc << 'EOF'
 {
   "singleQuote": true,
-  "trailingComma": "es5",
+  "trailingComma": "all",
   "tabWidth": 2,
   "semi": true,
   "printWidth": 100,
@@ -10,4 +8,3 @@ cat > .prettierrc << 'EOF'
   "bracketSpacing": true,
   "endOfLine": "lf"
 }
-EOF
