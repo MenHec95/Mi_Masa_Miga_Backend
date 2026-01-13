@@ -26,7 +26,8 @@ async function bootstrap() {
   const swaggerEnabled = configService.get<boolean>('swagger.enabled', true);
   const nodeEnv = configService.get<string>('nodeEnv', 'development');
 
-  if (swaggerEnabled && nodeEnv !== 'production') {
+  if (swaggerEnabled) {
+    //&& nodeEnv !== 'production') {
     const swaggerConfig = new DocumentBuilder()
       .setTitle(configService.get<string>('swagger.title', 'Mi Masa Miga API'))
       .setDescription(
@@ -76,7 +77,7 @@ async function bootstrap() {
   });
 
   const port = configService.get<number>('port', 3000);
-  await app.listen(port);
+  await app.listen(port, "0.0.0.0");
 
   console.log(`🚀 Servidor corriendo en: ${await app.getUrl()}`);
   console.log(`🌍 Entorno: ${nodeEnv}`);
