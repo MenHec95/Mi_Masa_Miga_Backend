@@ -1,40 +1,144 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
- // output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  //url        = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
   relationMode = "foreignKeys"
 }
 
-
 // ======== ENUMS ========
-
-enum UserRole{
+enum UserRole {
   ADMIN
   USER
+  PREMIUM      // Para futura monetización
+  SUBSCRIBER   // Para newsletter
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
 // ======== Models =======
-
 model User {
-  id           String     @id @default(uuid())
-  email        String     @unique 
+  id           String      @id @default(uuid())
+  email        String      @unique 
   password     String
   name         String
-  role         UserRole   @default(USER)
-  user_name    String
-  isActive     Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  updateAt     DateTime 
+  role         UserRole    @default(USER)
+  userName     String      @unique @map("user_name") // Cambiado a camelCase y único
+  isActive     Boolean     @default(true)
+  avatar       String?     // URL del avatar (opcional)
+  bio          String?     // Biografía corta
+  
+  // Relaciones
+  posts        Post[]      // Posts creados (solo ADMIN)
+  comments     Comment[]   // Comentarios del usuario
+  favorites    Favorite[]  // Posts favoritos
+  
+  // Timestamps
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt @map("update_at") // Auto-actualizable
 
+  @@map("users")
 }
 
+model Post {
+  id            String      @id @default(uuid())
+  title         String
+  slug          String      @unique // Para URLs amigables: "mi-primer-pan-de-masa-madre"
+  content       String      @db.Text // Contenido en markdown o HTML
+  excerpt       String?     // Resumen corto para listados
+  coverImage    String?     // URL imagen principal
+  
+  status        PostStatus  @default(DRAFT)
+  isPremium     Boolean     @default(false) // Para contenido pago futuro
+  
+  // Relaciones
+  authorId      String      @map("author_id")
+  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  categories    Category[]  // Relación muchos a muchos
+  comments      Comment[]
+  favorites     Favorite[]
+  
+  // SEO
+  metaTitle     String?
+  metaDescription String?
+  
+  // Estadísticas
+  viewCount     Int         @default(0)
+  
+  // Timestamps
+  publishedAt   DateTime?   // Fecha de publicación
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([authorId])
+  @@map("posts")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique // "Recetas", "Técnicas", "Herramientas"
+  slug        String    @unique
+  description String?
+  
+  posts       Post[]    // Relación muchos a muchos
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+model Comment {
+  id          String    @id @default(uuid())
+  content     String    @db.Text
+  
+  // Relaciones
+  postId      String    @map("post_id")
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  authorId    String    @map("author_id")
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  // Comentarios anidados (respuestas)
+  parentId    String?   @map("parent_id")
+  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Comment[] @relation("CommentReplies")
+  
+  isApproved  Boolean   @default(true) // Moderación opcional
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([postId])
+  @@index([authorId])
+  @@map("comments")
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  postId    String   @map("post_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId]) // Un usuario solo puede marcar un post como favorito una vez
+  @@index([userId])
+  @@index([postId])
+  @@map("favorites")
+}
