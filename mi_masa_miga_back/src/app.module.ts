@@ -1,7 +1,11 @@
 // 📁 src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 import configuration from './config/configuration';
+import { Prisma } from 'generated/prisma/browser';
+import { PrismaModule } from './prisma/prisma.module';
+
 
 @Module({
   imports: [
@@ -11,6 +15,7 @@ import configuration from './config/configuration';
       load: [configuration], // Carga tu configuración personalizada
       envFilePath: '.env', // Ruta de tu archivo .env
     }),
+    AuthModule, PrismaModule,
     // ... otros módulos que tengas
   ],
   controllers: [], // Tus controladores
