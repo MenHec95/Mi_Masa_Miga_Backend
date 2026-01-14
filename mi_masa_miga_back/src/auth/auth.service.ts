@@ -10,43 +10,46 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
- constructor(
-    
-    private readonly prisma: PrismaService
-  ) {}
+  constructor(
 
-  async create(createAuthDto: CreateAuthDto):Promise<CreateAuthResponseDto> {
-    
+    private readonly prisma: PrismaService
+  ) { }
+
+  async create(createAuthDto: CreateAuthDto): Promise<CreateAuthResponseDto> {
+
     //console.log(createAuthDto);
 
     try {
-      
-    const user= await this.prisma.user.findUnique({where:{email: createAuthDto.email},
-    select:{email:true}})
-    if (user){
-      //console.log(user)
-      throw new BadRequestException("Email ya existente");
-    }
-    
-    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS||"10");
-    const hashedPassword = await bcrypt.hash(createAuthDto.password, saltRounds);
 
-    const newUser = await this.prisma.user.create({
-      data: {
-        email: createAuthDto.email,
-        password: hashedPassword,
-        name: createAuthDto.name,
-        user_name: createAuthDto.userName,
-        updateAt: new Date(),
-      },
-    });
+      const user = await this.prisma.user.findUnique({
+        where: { email: createAuthDto.email },
+        select: { email: true }
+      })
+      if (user) {
+        //console.log(user)
+        throw new BadRequestException("Email ya existente");
+      }
 
-    return {userName:newUser.user_name};
-  } catch (error) {if (error instanceof BadRequestException) {
-      throw error;
+      const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || "10");
+      const hashedPassword = await bcrypt.hash(createAuthDto.password, saltRounds);
+
+      const newUser = await this.prisma.user.create({
+        data: {
+          email: createAuthDto.email,
+          password: hashedPassword,
+          name: createAuthDto.name,
+          userName: createAuthDto.userName,
+
+        },
+      });
+
+      return { userName: newUser.userName };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al crear usuario');
     }
-    throw new BadRequestException('Error al crear usuario');
-  }
   }
 
   findAll() {
