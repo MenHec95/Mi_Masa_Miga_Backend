@@ -1,24 +1,34 @@
-// 📁 src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
-import configuration from './config/configuration';
-import { Prisma } from 'generated/prisma/browser';
+import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
-
+import { AuthModule } from './auth/auth.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { RolesGuard } from './auth/guards/roles.guard';
+import configuration from './config/configuration';
 
 @Module({
   imports: [
-    // Configuración de variables de entorno
     ConfigModule.forRoot({
-      isGlobal: true, // Esto hace que ConfigService esté disponible globalmente
-      load: [configuration], // Carga tu configuración personalizada
-      envFilePath: '.env', // Ruta de tu archivo .env
+      isGlobal: true,
+      load: [configuration],
     }),
-    AuthModule, PrismaModule,
-    // ... otros módulos que tengas
+    PrismaModule,
+    AuthModule,
+    // Aquí irán tus otros módulos: PostsModule, CommentsModule, etc.
   ],
-  controllers: [], // Tus controladores
-  providers: [], // Tus servicios
+  providers: [
+    // Guard global - todas las rutas requieren autenticación por defecto
+    // Excepto las marcadas con @Public()
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    // Guard de roles - verifica permisos
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
-export class AppModule {}
+export class AppModule { }

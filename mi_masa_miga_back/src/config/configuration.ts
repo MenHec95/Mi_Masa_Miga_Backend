@@ -1,40 +1,27 @@
-// 📁 src/config/configuration.ts
 export default () => ({
-  // Entorno
-  nodeEnv: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3000', 10),
-
-  // CORS
-  cors: {
-    origins: process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim())
-      : ['http://localhost:3000', 'http://localhost:4200'],
-    credentials:
-      process.env.CORS_CREDENTIALS === 'true' ||
-      process.env.NODE_ENV === 'development',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  },
-
-  // Base de datos
+  nodeEnv: process.env.NODE_ENV || 'development',
   database: {
-    url: process.env.DATABASE_URL || '',
-    ssl: true,
+    url: process.env.DATABASE_URL,
   },
-
-  // JWT
   jwt: {
-    secret: process.env.JWT_SECRET || 'default-secret-change-in-production',
-    expiresIn: process.env.JWT_EXPIRES_IN || '1d',
+    secret: process.env.JWT_SECRET,
+    expiresIn: '24h',
   },
-
-  // Swagger - CON VALORES EXPLÍCITOS
+  bcrypt: {
+    saltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10),
+  },
   swagger: {
     enabled: process.env.SWAGGER_ENABLED !== 'false',
+    title: 'Mi Masa Miga API',
+    description: 'API para blog de masa madre y panadería',
+    version: '1.0',
     path: process.env.SWAGGER_PATH || 'docs',
-    title: process.env.SWAGGER_TITLE || 'Mi Masa Miga API',
-    description:
-      process.env.SWAGGER_DESCRIPTION || 'API para gestión de panadería',
-    version: process.env.SWAGGER_VERSION || '1.0',
+  },
+  cors: {
+    origins: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   },
 });
