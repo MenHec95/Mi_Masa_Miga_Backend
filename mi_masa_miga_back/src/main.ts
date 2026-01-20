@@ -54,6 +54,7 @@ async function bootstrap() {
   // CORS dinámico - con valores por defecto seguros
   const corsOrigins = configService.get<string[]>('cors.origins', [
     'http://localhost:3000',
+    'https://mi-masa-miga-frontend.vercel.app',
   ]);
   const corsMethods = configService.get<string[]>('cors.methods', [
     'GET',
