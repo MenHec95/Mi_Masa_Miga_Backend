@@ -1,6 +1,6 @@
 // src/recipes/recipes.service.ts
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service'; // ajusta la ruta
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 
@@ -34,8 +34,17 @@ export class RecipesService {
 
     const recipe = await this.prisma.recipe.create({
       data: {
-        ...createRecipeDto,
+        title: createRecipeDto.title,
         slug,
+        description: createRecipeDto.description,
+        coverImage: createRecipeDto.coverImage,
+        ingredients: JSON.parse(JSON.stringify(createRecipeDto.ingredients)),
+        instructions: JSON.parse(JSON.stringify(createRecipeDto.instructions)),
+        prepTime: createRecipeDto.prepTime,
+        cookTime: createRecipeDto.cookTime,
+        servings: createRecipeDto.servings,
+        difficulty: createRecipeDto.difficulty,
+        status: createRecipeDto.status,
         authorId,
       },
       include: {
@@ -54,6 +63,9 @@ export class RecipesService {
 
   async findAll() {
     return this.prisma.recipe.findMany({
+      where: {
+        status: 'PUBLISHED',
+      },
       include: {
         author: {
           select: {
@@ -109,27 +121,56 @@ export class RecipesService {
     return recipe;
   }
 
-  async update(id: string, updateRecipeDto: UpdateRecipeDto, userId: string) {
-    // Verificar que existe
-    const recipe = await this.findOne(id);
+  async update(id: string, updateRecipeDto: UpdateRecipeDto) {
+    // Ya no necesitas verificar authorId porque el guard se encarga
+    await this.findOne(id);
 
-    // Verificar que es el autor
-    if (recipe.authorId !== userId) {
-      throw new ConflictException('No tienes permiso para editar esta receta');
+    const updateData: any = {};
+
+    if (updateRecipeDto.title) {
+      updateData.title = updateRecipeDto.title;
+      updateData.slug = await this.generateSlug(updateRecipeDto.title);
     }
 
-    // Si cambia el título, regenerar slug
-    let slug = recipe.slug;
-    if (updateRecipeDto.title && updateRecipeDto.title !== recipe.title) {
-      slug = await this.generateSlug(updateRecipeDto.title);
+    if (updateRecipeDto.description !== undefined) {
+      updateData.description = updateRecipeDto.description;
+    }
+
+    if (updateRecipeDto.coverImage !== undefined) {
+      updateData.coverImage = updateRecipeDto.coverImage;
+    }
+
+    if (updateRecipeDto.ingredients) {
+      updateData.ingredients = JSON.parse(JSON.stringify(updateRecipeDto.ingredients));
+    }
+
+    if (updateRecipeDto.instructions) {
+      updateData.instructions = JSON.parse(JSON.stringify(updateRecipeDto.instructions));
+    }
+
+    if (updateRecipeDto.prepTime !== undefined) {
+      updateData.prepTime = updateRecipeDto.prepTime;
+    }
+
+    if (updateRecipeDto.cookTime !== undefined) {
+      updateData.cookTime = updateRecipeDto.cookTime;
+    }
+
+    if (updateRecipeDto.servings !== undefined) {
+      updateData.servings = updateRecipeDto.servings;
+    }
+
+    if (updateRecipeDto.difficulty !== undefined) {
+      updateData.difficulty = updateRecipeDto.difficulty;
+    }
+
+    if (updateRecipeDto.status !== undefined) {
+      updateData.status = updateRecipeDto.status;
     }
 
     return this.prisma.recipe.update({
       where: { id },
-      data: {
-        ...updateRecipeDto,
-        slug,
-      },
+      data: updateData,
       include: {
         author: {
           select: {
@@ -141,12 +182,8 @@ export class RecipesService {
     });
   }
 
-  async remove(id: string, userId: string) {
-    const recipe = await this.findOne(id);
-
-    if (recipe.authorId !== userId) {
-      throw new ConflictException('No tienes permiso para eliminar esta receta');
-    }
+  async remove(id: string) {
+    await this.findOne(id);
 
     await this.prisma.recipe.delete({
       where: { id },

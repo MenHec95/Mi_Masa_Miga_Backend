@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('🌱 Iniciando seed...');
 
-    // Crear usuario admin (tu esposa)
+    // Crear usuario admin
     const hashedPassword = await bcrypt.hash('Admin123!', 10);
 
     const admin = await prisma.user.upsert({
@@ -23,23 +23,26 @@ async function main() {
 
     console.log('✅ Usuario admin creado:', admin.email);
 
-    // Crear categorías iniciales
+    // COMENTAR ESTO HASTA QUE AGREGUES EL MODELO CATEGORY
+    /*
     const categories = [
-        { name: 'Recetas', slug: 'recetas', description: 'Recetas de masa madre' },
-        { name: 'Técnicas', slug: 'tecnicas', description: 'Técnicas de panificación' },
-        { name: 'Herramientas', slug: 'herramientas', description: 'Herramientas y utensilios' },
-        { name: 'Tips', slug: 'tips', description: 'Consejos y trucos' },
+      { name: 'Recetas', slug: 'recetas', description: 'Recetas de masa madre' },
+      { name: 'Técnicas', slug: 'tecnicas', description: 'Técnicas de panificación' },
+      { name: 'Herramientas', slug: 'herramientas', description: 'Herramientas y utensilios' },
+      { name: 'Tips', slug: 'tips', description: 'Consejos y trucos' },
     ];
-
+  
     for (const category of categories) {
-        await prisma.category.upsert({
-            where: { slug: category.slug },
-            update: {},
-            create: category,
-        });
+      await prisma.category.upsert({
+        where: { slug: category.slug },
+        update: {},
+        create: category,
+      });
     }
-
+  
     console.log('✅ Categorías creadas');
+    */
+
     console.log('🎉 Seed completado!');
 }
 
