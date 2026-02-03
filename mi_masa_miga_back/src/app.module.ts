@@ -5,6 +5,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { RecipesModule } from './recipes/recipes.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -15,6 +16,7 @@ import configuration from './config/configuration';
     }),
     PrismaModule,
     AuthModule,
+    RecipesModule,
     // Aquí irán tus otros módulos: PostsModule, CommentsModule, etc.
   ],
   providers: [
